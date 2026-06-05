@@ -1,0 +1,394 @@
+{
+  "info": {
+    "_postman_id": "8c03bdf8-8d3e-4ec8-bf25-0bb1c2f8f9a1",
+    "name": "Gaia Backend MVP",
+    "description": "Colecao para testar a API Gaia Backend MVP em sequencia logica. Rode a API em http://localhost:8080 antes de executar.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "farmId",
+      "value": ""
+    },
+    {
+      "key": "fieldId",
+      "value": ""
+    },
+    {
+      "key": "observationId",
+      "value": ""
+    },
+    {
+      "key": "recommendationId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "actuator",
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 - Swagger OpenAPI JSON",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/v3/api-docs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "v3",
+            "api-docs"
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 - Listar farms do seed",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/farms",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "farms"
+          ]
+        }
+      }
+    },
+    {
+      "name": "04 - Criar farm",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('farmId', body.id);",
+              "pm.test('Farm criada', function () { pm.expect(pm.response.code).to.eql(201); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Fazenda Primavera\",\n  \"ownerName\": \"Marina Silva\",\n  \"city\": \"Campinas\",\n  \"state\": \"SP\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/farms",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "farms"
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 - Buscar farm criada",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/farms/{{farmId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "farms",
+            "{{farmId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "06 - Atualizar farm criada",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Fazenda Primavera Atualizada\",\n  \"ownerName\": \"Marina Silva\",\n  \"city\": \"Campinas\",\n  \"state\": \"SP\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/farms/{{farmId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "farms",
+            "{{farmId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 - Criar field vinculado a farm",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('fieldId', body.id);",
+              "pm.test('Talhao criado', function () { pm.expect(pm.response.code).to.eql(201); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Talhao Leste\",\n  \"crop\": \"Cafe\",\n  \"hectares\": 18.5,\n  \"latitude\": -22.90,\n  \"longitude\": -47.06,\n  \"farmId\": {{farmId}}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/fields",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "fields"
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 - Listar fields",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/fields",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "fields"
+          ]
+        }
+      }
+    },
+    {
+      "name": "09 - Buscar field criado",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/fields/{{fieldId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "fields",
+            "{{fieldId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10 - Criar observacao satelital",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('observationId', body.id);",
+              "pm.test('Observacao satelital criada', function () { pm.expect(pm.response.code).to.eql(201); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fieldId\": {{fieldId}},\n  \"type\": \"SATELLITE\",\n  \"observedAt\": \"2026-06-05T10:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/observations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "observations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "11 - Criar observacao climatica",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fieldId\": {{fieldId}},\n  \"type\": \"CLIMATE\",\n  \"observedAt\": \"2026-06-05T11:00:00Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/observations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "observations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "12 - Consultar historico de observacoes do field",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/fields/{{fieldId}}/observations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "fields",
+            "{{fieldId}}",
+            "observations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "13 - Gerar recomendacao para o field",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "pm.collectionVariables.set('recommendationId', body.id);",
+              "pm.test('Recomendacao gerada', function () { pm.expect(pm.response.code).to.eql(201); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/recommendations/generate?fieldId={{fieldId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "recommendations",
+            "generate"
+          ],
+          "query": [
+            {
+              "key": "fieldId",
+              "value": "{{fieldId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "14 - Consultar recomendacoes do field",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/fields/{{fieldId}}/recommendations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "fields",
+            "{{fieldId}}",
+            "recommendations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "15 - Exemplo de erro de validacao",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"\",\n  \"ownerName\": \"\",\n  \"city\": \"\",\n  \"state\": \"Sao Paulo\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/farms",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "farms"
+          ]
+        }
+      }
+    }
+  ]
+}

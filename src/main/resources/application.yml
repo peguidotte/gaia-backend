@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: gaia-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gaia
+    username: gaia
+    password: gaia
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
