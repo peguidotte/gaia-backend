@@ -1,30 +1,138 @@
+<p align="center">
+  <img src="./assets/Gaia_Typo.png" alt="Gaia" width="420" />
+</p>
+
+<p align="center">
+  <img alt="Java" src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
+  <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img alt="Maven" src="https://img.shields.io/badge/Maven-3-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" />
+  <img alt="Swagger" src="https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" />
+</p>
+
 # Gaia Backend MVP
 
-API REST para monitoramento agricola e recomendacoes acionaveis do Gaia, uma plataforma de inteligencia agricola baseada em observacao espacial.
+API REST para monitoramento agrícola e recomendações acionáveis do Gaia, uma plataforma de inteligência agrícola baseada em observação espacial.
 
-## Motivacao
+## Integrantes
 
-Produtores rurais precisam transformar informacoes ambientais em decisoes simples. O Gaia interpreta observacoes espaciais e climaticas para responder duas perguntas:
+| Nome | RM |
+|---|---|
+| Leonardo Correa de Mello | RM 555573 |
+| Felipe Soares Xavier | RM 556931 |
+| Pedro Visconti Guidotte | RM 556630 |
+| Herbert de Sousa Vilela | RM 555701 |
+| Gabriel Figueira Flora | RM 556476 |
 
-- O que esta acontecendo no talhao?
-- O que merece atencao agora?
+## Motivação do projeto
 
-Este backend foi construido para a Global Solution como um Web Service com POO, DTOs, VOs, banco de dados, heranca, polimorfismo, interfaces, injecao de dependencia e tratamento de excecoes.
+Decisões agrícolas dependem de informações ambientais confiáveis: condição da vegetação, comportamento climático, riscos próximos à propriedade e evolução do talhão ao longo do tempo. O problema é que esses dados costumam ficar espalhados em sistemas diferentes, com linguagem técnica e baixa orientação para a tomada de decisão do produtor.
 
-## Tecnologias
+O Gaia foi pensado para resolver esse ponto: transformar observações espaciais e ambientais em entendimento prático. A proposta não é criar apenas um painel com números brutos, nem uma aplicação de clima genérica. O objetivo é interpretar sinais relevantes e responder, de forma simples, duas perguntas centrais:
 
-- Java 21
-- Spring Boot 3
-- Spring Web
-- Spring Data JPA
-- PostgreSQL via Docker Compose
-- Swagger/OpenAPI
-- Maven
-- JUnit 5
+- O que está acontecendo na propriedade ou no talhão?
+- O que merece atenção e qual ação deve ser priorizada?
+
+Este backend representa o primeiro recorte técnico dessa visão. Ele modela propriedades rurais, talhões, observações satelitais, observações climáticas e recomendações agrícolas. A API usa dados simulados de forma determinística para demonstrar o fluxo completo sem depender de serviços externos, mantendo a entrega simples de executar e fácil de avaliar.
+
+O foco estratégico do MVP é **monitoramento da saúde da vegetação e apoio à decisão por meio de observação espacial**. Por isso, a API não expõe apenas dados técnicos como NDVI ou chuva acumulada: ela também gera mensagens e recomendações em linguagem compreensível para produtores, como inspeção de vegetação, acompanhamento do talhão ou avaliação de irrigação.
+
+## Arquitetura e fluxo
+
+A arquitetura segue uma separação em camadas para demonstrar organização, testabilidade e desacoplamento:
+
+- **Controllers REST** recebem as requisições HTTP e expõem os recursos da API.
+- **DTOs** separam o contrato externo da API das entidades persistidas.
+- **Services** concentram regras de aplicação, orquestração do fluxo e injeção de dependências.
+- **Interfaces de domínio** definem contratos para pontuação de risco, geração de recomendações e fornecimento de dados simulados.
+- **Entidades JPA** representam o modelo persistido no PostgreSQL.
+- **Value Objects** encapsulam conceitos de domínio como coordenada, área, índice de vegetação e pontuação de risco.
+- **Repositories JPA** cuidam da persistência sem expor detalhes de banco para a API.
+
+O modelo de domínio foi estruturado para evidenciar conceitos de POO:
+
+- `Observation` é uma classe abstrata para observações ambientais.
+- `SatelliteObservation` e `ClimateObservation` especializam a observação por herança.
+- O método `producerMessage()` é polimórfico e gera mensagens específicas para cada tipo de observação.
+- `RecommendationEngine`, `ObservationScoringService` e `ClimateDataProvider` são interfaces injetadas por dependência.
+
+### Fluxo funcional
+
+```mermaid
+flowchart TD
+    A["Cliente REST / Swagger / Postman"] --> B["Controllers REST"]
+    B --> C["Validação dos DTOs"]
+    C --> D["Services de aplicação"]
+    D --> E["Repositories JPA"]
+    E --> F["PostgreSQL"]
+
+    D --> G["ClimateDataProvider"]
+    G --> H["Observações simuladas determinísticas"]
+    H --> I["SatelliteObservation"]
+    H --> J["ClimateObservation"]
+
+    I --> K["ObservationScoringService"]
+    J --> K
+    K --> L["RiskScore"]
+
+    D --> M["RecommendationEngine"]
+    L --> M
+    M --> N["Recommendation"]
+    N --> E
+```
+
+### Fluxo de uso esperado
+
+```mermaid
+sequenceDiagram
+    participant User as Cliente
+    participant API as Gaia API
+    participant DB as PostgreSQL
+    participant Provider as Dados simulados
+    participant Engine as Motor de recomendação
+
+    User->>API: Criar propriedade rural
+    API->>DB: Persistir Farm
+    DB-->>API: Farm criada
+
+    User->>API: Criar talhão vinculado à propriedade
+    API->>DB: Persistir Field
+    DB-->>API: Field criado
+
+    User->>API: Criar observação SATELLITE ou CLIMATE
+    API->>Provider: Gerar dados ambientais determinísticos
+    Provider-->>API: Observação com risco calculável
+    API->>DB: Persistir Observation
+
+    User->>API: Gerar recomendação do talhão
+    API->>DB: Buscar histórico de observações
+    API->>Engine: Interpretar risco e contexto
+    Engine-->>API: Recomendação acionável
+    API->>DB: Persistir Recommendation
+    API-->>User: Ação recomendada para o produtor
+```
+
+### Recursos da API
+
+| Recurso | Responsabilidade |
+|---|---|
+| `/farms` | Cadastro e manutenção de propriedades rurais. |
+| `/fields` | Cadastro e manutenção de talhões vinculados a propriedades. |
+| `/observations` | Registro de observações satelitais e climáticas simuladas. |
+| `/fields/{fieldId}/observations` | Consulta do histórico ambiental de um talhão. |
+| `/recommendations/generate` | Geração de recomendação agrícola a partir das observações. |
+| `/fields/{fieldId}/recommendations` | Consulta de recomendações já geradas para um talhão. |
 
 ## Como rodar
 
-Suba o banco:
+Pré-requisitos:
+
+- Java 21
+- Maven 3
+- Docker Desktop
+
+Suba o banco PostgreSQL:
 
 ```bash
 docker compose up -d
@@ -42,98 +150,10 @@ Acesse:
 - Swagger: http://localhost:8080/swagger-ui.html
 - Health check: http://localhost:8080/actuator/health
 
-## Endpoints principais
+Execute os testes automatizados:
 
-| Metodo | Endpoint | Descricao |
-| --- | --- | --- |
-| `GET` | `/farms` | Lista propriedades |
-| `POST` | `/farms` | Cria propriedade |
-| `PUT` | `/farms/{id}` | Atualiza propriedade |
-| `DELETE` | `/farms/{id}` | Remove propriedade |
-| `GET` | `/fields` | Lista talhoes |
-| `POST` | `/fields` | Cria talhao |
-| `PUT` | `/fields/{id}` | Atualiza talhao |
-| `DELETE` | `/fields/{id}` | Remove talhao |
-| `GET` | `/observations` | Lista observacoes |
-| `POST` | `/observations` | Gera observacao simulada |
-| `GET` | `/fields/{fieldId}/observations` | Lista historico do talhao |
-| `POST` | `/recommendations/generate?fieldId={id}` | Gera recomendacao |
-| `GET` | `/fields/{fieldId}/recommendations` | Lista recomendacoes do talhao |
-
-## Exemplos de requisicao
-
-Criar propriedade:
-
-```json
-{
-  "name": "Fazenda Primavera",
-  "ownerName": "Marina Silva",
-  "city": "Campinas",
-  "state": "SP"
-}
-```
-
-Criar talhao:
-
-```json
-{
-  "name": "Talhao Leste",
-  "crop": "Cafe",
-  "hectares": 18.5,
-  "latitude": -22.90,
-  "longitude": -47.06,
-  "farmId": 1
-}
-```
-
-Gerar observacao:
-
-```json
-{
-  "fieldId": 1,
-  "type": "SATELLITE",
-  "observedAt": "2026-06-05T10:00:00Z"
-}
-```
-
-## Fluxo da arquitetura
-
-```mermaid
-flowchart TD
-    A["Cliente / Swagger"] --> B["Controllers REST"]
-    B --> C["DTOs de entrada e saida"]
-    C --> D["Services com DI"]
-    D --> E["Interfaces de dominio"]
-    E --> F["Provedor simulado de clima e satelite"]
-    E --> G["Motor de recomendacao"]
-    D --> H["Repositories JPA"]
-    H --> I["PostgreSQL"]
-    D --> J["Entidades e VOs"]
-    J --> K["Farm, Field, Observation, Recommendation"]
-    K --> L["SatelliteObservation e ClimateObservation"]
-```
-
-## Evidencias de execucao
-
-Testes automatizados executados com sucesso:
-
-```text
+```bash
 mvn test
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS
 ```
 
-O seed inicial cria uma fazenda, dois talhoes, observacoes climaticas/satelitais e recomendacoes para demonstrar o fluxo completo ao subir a API.
-
-## Requisitos atendidos
-
-- Modelagem de dominio com classes publicas.
-- Heranca e polimorfismo com `Observation`, `SatelliteObservation` e `ClimateObservation`.
-- Interfaces e injecao de dependencia com services e providers.
-- DTOs para entrada e saida da API.
-- VOs para coordenada, area, indice de vegetacao e risco.
-- Persistencia com PostgreSQL.
-- Web Service REST com Swagger.
-- Tratamento global de excecoes.
-- Manipulacao de datas com `OffsetDateTime`.
-- README com motivacao, arquitetura e evidencias.
+Também há uma coleção Postman no arquivo `gaia-api.postman_collection.json`, com uma sequência pronta para testar o fluxo completo da API.
